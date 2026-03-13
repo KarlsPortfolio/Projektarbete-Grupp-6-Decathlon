@@ -1,32 +1,38 @@
 package com.example.decathlon.excel;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
+
 public class ExcelReader {
-	
-	public String getCellInfo(String excelName, int sheetNumber, int rowNumber, int colNumber) throws IOException {
-		File excelfile = new File("C:/Eclipse/resultat_" + excelName + ".xlsx");
-		FileInputStream fis = new FileInputStream(excelfile);
-		
-		@SuppressWarnings("resource")
-		XSSFWorkbook wb = new XSSFWorkbook(fis);
 
-		Sheet sheet = wb.getSheetAt(sheetNumber);
-		Row row = sheet.getRow(rowNumber);
-        Cell cell = row.getCell(colNumber);
-				
-        DataFormatter dataFormatter = new DataFormatter();
-		return dataFormatter.formatCellValue(cell);
-		
+	public List<String[]> read(String filename) throws Exception {
+		List<String[]> rows = new ArrayList<>();
+
+		FileInputStream fis = new FileInputStream(filename);
+		Workbook workbook = new XSSFWorkbook(fis);
+		Sheet sheet = workbook.getSheetAt(0);
+
+		for (Row row : sheet) {
+			String[] cells = new String[3];
+			for (int i = 0; i < 3; i++) {
+				if (row.getCell(i) == null) {
+					cells[i] = "";
+				} else {
+					cells[i] = row.getCell(i).toString();
+				}
+			}
+			rows.add(cells);
+		}
+
+		workbook.close();
+		fis.close();
+
+		return rows;
 	}
-
 }
