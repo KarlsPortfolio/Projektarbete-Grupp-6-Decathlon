@@ -1,57 +1,34 @@
 package com.example.decathlon.excel;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
+import java.io.FileOutputStream;
+import java.util.List;
 
 public class ExcelPrinter {
 
-	private XSSFWorkbook workbook;
-	private String excelName;
+	public void print(List<String[]> rows, String filename) throws Exception {
+		Workbook workbook = new XSSFWorkbook();
+		Sheet sheet = workbook.createSheet("Results");
 
-	public ExcelPrinter(String name) throws IOException {
-		workbook = new XSSFWorkbook();
-		excelName = name;
-	}
-
-	public void add(Object[][] data, String sheetName) {
-
-		XSSFSheet sheet = workbook.createSheet(sheetName);
-
-		int rowCount = 0;
-
-		for (Object[] aBook : data) {
-			Row row = sheet.createRow(rowCount);
-			rowCount++;
-			int columnCount = 0;
-
-			for (Object field : aBook) {
-				Cell cell = row.createCell(columnCount);
-				columnCount++;
-				
-				if (field instanceof String) {
-					cell.setCellValue((String) field);
-					
-				} else if (field instanceof Integer) {
-					cell.setCellValue((Integer) field);
-					
-				} else if (field instanceof Double) {
-					cell.setCellValue((Double) field);
-					
-				}
+		int rowNum = 0;
+		for (String[] rowData : rows) {
+			Row row = sheet.createRow(rowNum++);
+			int col = 0;
+			for (String cell : rowData) {
+				row.createCell(col++).setCellValue(cell);
 			}
 		}
-	}
 
-	public void write() throws IOException {
-		FileOutputStream out = new FileOutputStream("C:/Eclipse/resultat_" + excelName + ".xlsx");
+		for (int i = 0; i < 3; i++) {
+			sheet.autoSizeColumn(i);
+		}
+
+		FileOutputStream out = new FileOutputStream(filename);
 		workbook.write(out);
+		out.close();
 		workbook.close();
 	}
-
 }
