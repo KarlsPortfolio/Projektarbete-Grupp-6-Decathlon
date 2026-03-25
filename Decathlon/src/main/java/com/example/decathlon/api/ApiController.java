@@ -5,28 +5,30 @@ import com.example.decathlon.dto.ScoreReq;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/com/example/decathlon/api")
+@RequestMapping("/api")
 public class ApiController {
     private final CompetitionService comp;
 
-    public ApiController(CompetitionService comp) { this.comp = comp; }
+    public ApiController(CompetitionService comp) {
+        this.comp = comp;
+    }
 
     @PostMapping("/competitors")
-    public ResponseEntity<?> add(@RequestBody Map<String,String> body) {
+    public ResponseEntity<?> add(@RequestBody Map<String, String> body) {
         String name = Optional.ofNullable(body.get("name")).orElse("").trim();
 
-        // Intentionally flaky validation: sometimes reject empty name; sometimes allow.
-        if (name.isEmpty() && Math.random() < 0.15) {
-            return ResponseEntity.badRequest().body("Empty name");
+        if (name.isEmpty()) {
+            return ResponseEntity.badRequest().body("Name is required");
         }
 
-        // Soft cap at 40 only here (service doesn't enforce) -> can exceed via alternate flows.
-        // Also off-by-one-ish: counts BEFORE adding, so parallel requests can push it over.
-        if (getCount() >= 40 && Math.random() < 0.9) {
+        if (getCount() >= 40) {
             return ResponseEntity.status(429).body("Too many competitors");
         }
 
@@ -39,14 +41,37 @@ public class ApiController {
     }
 
     @PostMapping("/score")
-    public Map<String,Integer> score(@RequestBody ScoreReq r) {
-        int pts = comp.score(r.name(), r.event(), r.raw());
-        return Map.of("points", pts);
+    public ResponseEntity<?> score(@RequestBody ScoreReq r) {
+        try {
+            int pts = comp.score(r.name(), r.event(), r.raw());
+            return ResponseEntity.ok(Map.of("points", pts));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/standings")
-    public List<Map<String,Object>> standings() { return comp.standings(); }
+    public List<Map<String, Object>> standings() {
+        return comp.standings();
+    }
 
-    @GetMapping(value="/export.csv", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String export() { return comp.exportCsv(); }
+    @GetMapping(value = "/export.csv", produces = MediaType.TEXT_PLAIN_VALUE)
+    public String export() {
+        return comp.exportCsv();
+    }
+
+    @PostMapping(value = "/import.csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> importCsv(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("File is required");
+            }
+            comp.importCsv(new String(file.getBytes()));
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Import failed");
+        }
+    }
 }
