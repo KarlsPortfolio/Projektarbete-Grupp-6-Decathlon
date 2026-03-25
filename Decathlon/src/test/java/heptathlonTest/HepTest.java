@@ -1,6 +1,8 @@
 package heptathlonTest;
 
 import com.example.decathlon.common.CalcTrackAndField;
+import com.example.decathlon.deca.DecaHighJump;
+import com.example.decathlon.heptathlon.HeptJavelinThrow;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -22,6 +24,13 @@ public class HepTest {
         //int expected = (int) (constA * Math.pow((constB - result), constC));
 
         assertEquals(expected, actual);
+    }
+    @Test
+    public void testHepValidInputJavelinThrow(){
+        HeptJavelinThrow javelinThrow = new HeptJavelinThrow();
+        int actual = javelinThrow.calculateResult(100);
+        int expected = 1845;
+        assertEquals(expected,actual);
     }
 
 }

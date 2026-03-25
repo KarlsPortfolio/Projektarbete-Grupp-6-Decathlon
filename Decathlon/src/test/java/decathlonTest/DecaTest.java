@@ -1,8 +1,12 @@
 package decathlonTest;
 
 import com.example.decathlon.common.CalcTrackAndField;
+import com.example.decathlon.deca.Deca1500M;
+import com.example.decathlon.deca.DecaDiscusThrow;
+import com.example.decathlon.deca.DecaHighJump;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.example.decathlon.deca.Deca110MHurdles;
 
 public class DecaTest {
 
@@ -102,6 +106,14 @@ public class DecaTest {
         DecaDiscusThrow discusThrow = new DecaDiscusThrow();
         int actual = discusThrow.calculateResult(85);
         int expected = 1622;
+        assertEquals(expected,actual);
+    }
+
+    @Test
+    public void testDecaValidInputHighJump(){
+        DecaHighJump highJump = new DecaHighJump();
+        int actual = highJump.calculateResult(90);
+        int expected = 39;
         assertEquals(expected,actual);
     }
 
