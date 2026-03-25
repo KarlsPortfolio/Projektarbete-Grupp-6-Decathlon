@@ -117,4 +117,121 @@ public class DecaTest {
         assertEquals(expected,actual);
     }
 
+    @Test
+    public void testDecaValidInput400M() {
+        CalcTrackAndField calc = new CalcTrackAndField();
+
+        constA = 1.53775;
+        constB = 82;
+        constC = 1.81;
+        result = 42;
+
+        int actual = calc.calculateTrack(constA, constB, constC, result);
+        int expected = 1220;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaUpperLimit400M() {
+        Deca400M calc = new Deca400M();
+
+        result = 82;
+
+        int actual = calc.calculateResult(result);
+        int expected = 0;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaLowerLimit400M() {
+        Deca400M calc = new Deca400M();
+
+        result = 20;
+
+        int actual = calc.calculateResult(result);
+        int expected = 2698;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaValidInputPoleVault() {
+        CalcTrackAndField calc = new CalcTrackAndField();
+
+        constA = 0.2797;
+        constB = 100;
+        constC = 1.35;
+        result = 555.55;
+
+        int actual = calc.calculateField(constA, constB, constC, result);
+        int expected = 1085;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaUpperLimitPoleVault() {
+        DecaPoleVault calc = new DecaPoleVault();
+
+        result = 1000;
+
+        int actual = calc.calculateResult(result);
+        int expected = 2722;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaLowerLimitPoleVault() {
+        DecaPoleVault calc = new DecaPoleVault();
+
+        result = 100;
+
+        int actual = calc.calculateResult(result);
+        int expected = 0;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaValidInputShotPut() {
+        CalcTrackAndField calc = new CalcTrackAndField();
+
+        constA = 51.39;
+        constB = 1.5;
+        constC = 1.05;
+        result = 21.12;
+
+        int actual = calc.calculateField(constA, constB, constC, result);
+        int expected = 1170;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaUpperLimitShotPut() {
+        DecaShotPut calc = new DecaShotPut();
+
+        result = 30;
+
+        int actual = calc.calculateResult(result);
+        int expected = 1731;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaLowerLimitShotPut() {
+        DecaShotPut calc = new DecaShotPut();
+
+        result = 1.5;
+
+        int actual = calc.calculateResult(result);
+        int expected = 0;
+
+        assertEquals(expected, actual);
+    }
+
 }
