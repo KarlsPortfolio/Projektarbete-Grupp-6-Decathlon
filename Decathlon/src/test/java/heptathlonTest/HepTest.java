@@ -2,9 +2,7 @@ package heptathlonTest;
 
 import com.example.decathlon.common.CalcTrackAndField;
 import com.example.decathlon.deca.DecaHighJump;
-import com.example.decathlon.heptathlon.HeptJavelinThrow;
-import com.example.decathlon.heptathlon.HeptLongJump;
-import com.example.decathlon.heptathlon.HeptShotPut;
+import com.example.decathlon.heptathlon.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,16 +12,37 @@ public class HepTest {
 
     @Test
     public void testHepValidInput200M() {
-        CalcTrackAndField calc = new CalcTrackAndField();
+        Hep200M calc = new Hep200M();
 
-        constA = 4.99087;
-        constB = 42.5;
-        constC = 1.81;
+        result = 30;
+
+        int actual = calc.calculateResult(result);
+        int expected = 482;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHepValidInputUpperLimit200M() {
+        Hep200M calc = new Hep200M();
+
+
+        result = 42.5;
+
+        int actual = calc.calculateResult(result);
+        int expected = 0;
+        //int expected = (int) (constA * Math.pow((constB - result), constC));
+
+        assertEquals(expected, actual);
+    }
+    @Test
+    public void testHepValidInputLowerLimit200M() {
+        Hep200M calc = new Hep200M();
+
         result = 20;
 
-        int actual = calc.calculateTrack(constA, constB, constC, result);
+        int actual = calc.calculateResult(result);
         int expected = 1398;
-        //int expected = (int) (constA * Math.pow((constB - result), constC));
 
         assertEquals(expected, actual);
     }
@@ -50,5 +69,120 @@ public class HepTest {
         int expected = 1887;
         assertEquals(expected,actual);
     }
+
+
+    @Test
+    public void testHepValidInput100mHurdles() {
+        Hep100MHurdles calc = new Hep100MHurdles();
+
+        result = 20;
+
+        int actual = calc.calculateResult(result);
+        int expected = 302;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHepValidInputLowerLimit100mHurdles() {
+        Hep100MHurdles calc = new Hep100MHurdles();
+
+        result = 10;
+
+        int actual = calc.calculateResult(result);
+        int expected = 1617;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHepValidInputUpperLimit100mHurdles() {
+        Hep100MHurdles calc = new Hep100MHurdles();
+
+        result = 26.7;
+
+        int actual = calc.calculateResult(result);
+        int expected = 0;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHepValidInput800m() {
+        CalcTrackAndField calc = new CalcTrackAndField();
+
+        constA = 0.11193;
+        constB = 254;
+        constC = 1.88;
+        result = 100;
+
+        int actual = calc.calculateTrack(constA, constB, constC, result);
+        int expected = 1450;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHepValidInputLowerLimit800m() {
+        Hep800M calc = new Hep800M();
+
+        result = 70;
+
+        int actual = calc.calculateResult(result);
+        int expected = 2026;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHepValidInputUpperLimit800m() {
+        Hep800M calc = new Hep800M();
+
+        result = 254;
+
+        int actual = calc.calculateResult(result);
+        int expected = 0;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHepValidInputHighJump() {
+        CalcTrackAndField calc = new CalcTrackAndField();
+
+        constA = 1.84523;
+        constB =  75;
+        constC = 1.348;
+        result = 100;
+
+        int actual = calc.calculateField(constA, constB, constC, result);
+        int expected = 141;
+
+        assertEquals(expected, actual);
+    }
+    @Test
+    public void testHepValidInputLowerLimitHighJump() {
+        HeptHightJump calc = new HeptHightJump();
+
+        result = 75;
+
+        int actual = calc.calculateResult(result);
+        int expected = 0;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHepValidInputUpperLimitHighJump() {
+        HeptHightJump calc = new HeptHightJump();
+
+        result = 300;
+
+        int actual = calc.calculateResult(result);
+        int expected = 2733;
+
+        assertEquals(expected, actual);
+    }
+
 
 }

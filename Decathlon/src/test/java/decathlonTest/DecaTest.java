@@ -1,41 +1,22 @@
 package decathlonTest;
 
 import com.example.decathlon.common.CalcTrackAndField;
-import com.example.decathlon.deca.Deca1500M;
-import com.example.decathlon.deca.DecaDiscusThrow;
-import com.example.decathlon.deca.DecaHighJump;
+import com.example.decathlon.deca.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import com.example.decathlon.deca.Deca110MHurdles;
 
 public class DecaTest {
 
     private double constA, constB, constC, result;
 
-    @Test
-    public void testDecaValidInput100M() {
-        CalcTrackAndField calc = new CalcTrackAndField();
-
-        constA = 25.4347;
-        constB = 18;
-        constC = 1.81;
-        result = 10;
-
-        int actual = calc.calculateTrack(constA, constB, constC, result);
-        int expected = 1096;
-
-        assertEquals(expected, actual);
-    }
 
     @Test
     public void testDecaValidInput110M(){
-        CalcTrackAndField calc = new CalcTrackAndField();
-        constA = 5.74352;
-        constB = 28.5;
-        constC = 1.92;
+        Deca110MHurdles calc = new Deca110MHurdles();
+
         result = 15;
 
-        int actual =  calc.calculateTrack(constA,constB,constC,result);
+        int actual =  calc.calculateResult(result);
         int expected = 850;
         assertEquals(expected,actual);
 
@@ -119,14 +100,11 @@ public class DecaTest {
 
     @Test
     public void testDecaValidInput400M() {
-        CalcTrackAndField calc = new CalcTrackAndField();
+        Deca100M calc = new Deca100M();
 
-        constA = 1.53775;
-        constB = 82;
-        constC = 1.81;
         result = 42;
 
-        int actual = calc.calculateTrack(constA, constB, constC, result);
+        int actual = calc.calculateResult(result);
         int expected = 1220;
 
         assertEquals(expected, actual);
@@ -158,14 +136,11 @@ public class DecaTest {
 
     @Test
     public void testDecaValidInputPoleVault() {
-        CalcTrackAndField calc = new CalcTrackAndField();
+        DecaPoleVault calc = new DecaPoleVault();
 
-        constA = 0.2797;
-        constB = 100;
-        constC = 1.35;
         result = 555.55;
 
-        int actual = calc.calculateField(constA, constB, constC, result);
+        int actual = calc.calculateResult(result);
         int expected = 1085;
 
         assertEquals(expected, actual);
@@ -197,14 +172,11 @@ public class DecaTest {
 
     @Test
     public void testDecaValidInputShotPut() {
-        CalcTrackAndField calc = new CalcTrackAndField();
+        DecaShotPut calc = new DecaShotPut();
 
-        constA = 51.39;
-        constB = 1.5;
-        constC = 1.05;
         result = 21.12;
 
-        int actual = calc.calculateField(constA, constB, constC, result);
+        int actual = calc.calculateResult(result);
         int expected = 1170;
 
         assertEquals(expected, actual);
@@ -227,6 +199,83 @@ public class DecaTest {
         DecaShotPut calc = new DecaShotPut();
 
         result = 1.5;
+
+        int actual = calc.calculateResult(result);
+        int expected = 0;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaValidInput100M() {
+        Deca100M calc = new Deca100M();
+
+        constA = 25.4347;
+        constB = 18;
+        constC = 1.81;
+        result = 10;
+
+        int actual = calc.calculateResult(result);
+        int expected = 1096;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaValidLowerLimit100M() {
+        Deca100M calc = new Deca100M();
+
+        result = 5;
+
+        int actual = calc.calculateResult(result);
+        int expected = 2640;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaValidUpperLimit100M() {
+        Deca100M calc = new Deca100M();
+
+        result = 18;
+
+        int actual = calc.calculateResult(result);
+        int expected = 0;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaValidJavelinThrow() {
+        CalcTrackAndField calc = new CalcTrackAndField();
+
+        constA = 10.14;
+        constB = 7;
+        constC = 1.08;
+        result = 15;
+
+        int actual = calc.calculateField(constA, constB, constC, result);
+        int expected = 95;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDecaValidUpperLimitJavelinThrow() {
+        DecaJavelinThrow calc = new DecaJavelinThrow();
+
+        result = 110;
+
+        int actual = calc.calculateResult(result);
+        int expected = 1513;
+
+        assertEquals(expected, actual);
+    }
+    @Test
+    public void testDecaValidLowerLimitJavelinThrow() {
+        DecaJavelinThrow calc = new DecaJavelinThrow();
+
+        result = 7;
 
         int actual = calc.calculateResult(result);
         int expected = 0;
