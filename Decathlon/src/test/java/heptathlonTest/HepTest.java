@@ -3,6 +3,8 @@ package heptathlonTest;
 import com.example.decathlon.common.CalcTrackAndField;
 import com.example.decathlon.deca.DecaHighJump;
 import com.example.decathlon.heptathlon.HeptJavelinThrow;
+import com.example.decathlon.heptathlon.HeptLongJump;
+import com.example.decathlon.heptathlon.HeptShotPut;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,6 +32,22 @@ public class HepTest {
         HeptJavelinThrow javelinThrow = new HeptJavelinThrow();
         int actual = javelinThrow.calculateResult(100);
         int expected = 1845;
+        assertEquals(expected,actual);
+    }
+
+    @Test
+    public void testHepValidInputLongJump(){
+        HeptLongJump longJump = new HeptLongJump();
+        int actual = longJump.calculateResult(300);
+        int expected = 107;
+        assertEquals(expected,actual);
+    }
+
+    @Test
+    public void testHepValidInputShotPut(){
+        HeptShotPut shotPut = new HeptShotPut();
+        int actual = shotPut.calculateResult(30);
+        int expected = 1887;
         assertEquals(expected,actual);
     }
 
