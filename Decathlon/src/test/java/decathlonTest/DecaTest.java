@@ -1,14 +1,11 @@
 package decathlonTest;
 
 import com.example.decathlon.common.CalcTrackAndField;
-import com.example.decathlon.deca.Deca110MHurdles;
-import com.example.decathlon.deca.Deca1500M;
-import com.example.decathlon.deca.DecaDiscusThrow;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DecaTest {
+
     private double constA, constB, constC, result;
 
     @Test
@@ -107,4 +104,5 @@ public class DecaTest {
         int expected = 1622;
         assertEquals(expected,actual);
     }
+
 }
