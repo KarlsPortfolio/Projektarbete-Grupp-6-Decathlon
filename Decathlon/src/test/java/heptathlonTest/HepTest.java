@@ -1,7 +1,6 @@
 package heptathlonTest;
 
 import com.example.decathlon.common.CalcTrackAndField;
-import com.example.decathlon.deca.DecaHighJump;
 import com.example.decathlon.heptathlon.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -233,6 +232,7 @@ public class HepTest {
 
         assertEquals(expected, actual);
     }
+
 
 
 }
