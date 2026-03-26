@@ -49,8 +49,24 @@ public class HepTest {
     @Test
     public void testHepValidInputJavelinThrow(){
         HeptJavelinThrow javelinThrow = new HeptJavelinThrow();
-        int actual = javelinThrow.calculateResult(100);
-        int expected = 1845;
+        int actual = javelinThrow.calculateResult(85);
+        int expected = 1547;
+        assertEquals(expected,actual);
+    }
+
+    @Test
+    public void testHepUpperLimitJavelinThrow(){
+        HeptJavelinThrow javelinThrow = new HeptJavelinThrow();
+        int actual = javelinThrow.calculateResult(110);
+        int expected = 2045;
+        assertEquals(expected,actual);
+    }
+
+    @Test
+    public void testHepLowerLimitJavelinThrow(){
+        HeptJavelinThrow javelinThrow = new HeptJavelinThrow();
+        int actual = javelinThrow.calculateResult(3.8);
+        int expected = 0;
         assertEquals(expected,actual);
     }
 
@@ -63,12 +79,46 @@ public class HepTest {
     }
 
     @Test
+    public void testHepUpperLimitLongJump(){
+        HeptLongJump longJump = new HeptLongJump();
+        int actual = longJump.calculateResult(1000);
+        int expected = 1523;
+        assertEquals(expected,actual);
+    }
+
+    @Test
+    public void testHepLowerLimitLongJump(){
+        HeptLongJump longJump = new HeptLongJump();
+        int actual = longJump.calculateResult(210);
+        int expected = 0;
+        assertEquals(expected,actual);
+    }
+
+    @Test
     public void testHepValidInputShotPut(){
+        HeptShotPut shotPut = new HeptShotPut();
+        int actual = shotPut.calculateResult(15);
+        int expected = 861;
+        assertEquals(expected,actual);
+    }
+
+    @Test
+    public void testHepUpperLimitShotPut(){
         HeptShotPut shotPut = new HeptShotPut();
         int actual = shotPut.calculateResult(30);
         int expected = 1887;
         assertEquals(expected,actual);
     }
+
+
+    @Test
+    public void testHepLowerLimitShotPut(){
+        HeptShotPut shotPut = new HeptShotPut();
+        int actual = shotPut.calculateResult(1.5);
+        int expected = 0;
+        assertEquals(expected,actual);
+    }
+
 
 
     @Test

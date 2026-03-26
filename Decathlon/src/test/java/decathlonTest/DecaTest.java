@@ -99,6 +99,24 @@ public class DecaTest {
     }
 
     @Test
+    public void testDecaUpperLimitHighJump(){
+        DecaHighJump highJump = new DecaHighJump();
+        int actual = highJump.calculateResult(300);
+        int expected = 1852;
+        assertEquals(expected,actual);
+    }
+
+
+    @Test
+    public void testDecaLowerLimitHighJump(){
+        DecaHighJump highJump = new DecaHighJump();
+        int actual = highJump.calculateResult(75);
+        int expected = 0;
+        assertEquals(expected,actual);
+    }
+
+
+    @Test
     public void testDecaValidInput400M() {
         Deca100M calc = new Deca100M();
 
