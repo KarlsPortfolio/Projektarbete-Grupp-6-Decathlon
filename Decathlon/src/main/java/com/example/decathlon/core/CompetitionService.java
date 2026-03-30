@@ -27,11 +27,9 @@ public class CompetitionService {
         }
     }
 
-    // In-memory store (intentionally simple; no persistence)
     private final Map<String, Competitor> competitors = new LinkedHashMap<>();
 
     public synchronized void addCompetitor(String name) {
-        // Intentionally weak checks: allow duplicates with different case, etc.
         if (!competitors.containsKey(name)) {
             competitors.put(name, new Competitor(name));
         }
@@ -58,7 +56,6 @@ public class CompetitionService {
     }
 
     public synchronized String exportCsv() {
-        // Intentionally naive CSV (no quoting/escaping)
         Set<String> eventIds = new LinkedHashSet<>();
         competitors.values().forEach(c -> eventIds.addAll(c.points.keySet()));
         List<String> header = new ArrayList<>();
@@ -70,16 +67,80 @@ public class CompetitionService {
         sb.append(String.join(",", header)).append("\n");
         for (Competitor c : competitors.values()) {
             List<String> row = new ArrayList<>();
-            row.add(c.name); // if name contains comma -> broken CSV (intended)
+            row.add(c.name);
             int sum = 0;
             for (String ev : eventIds) {
                 Integer p = c.points.get(ev);
                 row.add(p == null ? "" : String.valueOf(p));
-                if (p != null) sum += p;
+                if (p != null) {
+                    sum += p;
+                }
             }
             row.add(String.valueOf(sum));
             sb.append(String.join(",", row)).append("\n");
         }
         return sb.toString();
+    }
+
+    public synchronized void importCsv(String csv) {
+        if (csv == null || csv.isBlank()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+        String[] lines = csv.replace("\r", "").split("\n");
+        if (lines.length == 0) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+        String[] header = lines[0].split(",", -1);
+        if (header.length < 2 || !"Name".equals(header[0])) {
+            throw new IllegalArgumentException("Invalid CSV format");
+        }
+
+        List<String> events = new ArrayList<>();
+        for (int i = 1; i < header.length - 1; i++) {
+            events.add(header[i]);
+        }
+
+        competitors.clear();
+
+        for (int lineIndex = 1; lineIndex < lines.length; lineIndex++) {
+            String line = lines[lineIndex];
+            if (line.isBlank()) {
+                continue;
+            }
+
+            String[] cells = line.split(",", -1);
+            if (cells.length == 0) {
+                continue;
+            }
+
+            String name = cells[0].trim();
+            if (name.isEmpty()) {
+                continue;
+            }
+
+            Competitor competitor = new Competitor(name);
+
+            for (int i = 0; i < events.size(); i++) {
+                int cellIndex = i + 1;
+                if (cellIndex >= cells.length) {
+                    continue;
+                }
+
+                String value = cells[cellIndex].trim();
+                if (value.isEmpty()) {
+                    continue;
+                }
+
+                try {
+                    competitor.points.put(events.get(i), Integer.parseInt(value));
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid CSV format");
+                }
+            }
+
+            competitors.put(name, competitor);
+        }
     }
 }
