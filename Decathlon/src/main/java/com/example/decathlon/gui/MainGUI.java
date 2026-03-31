@@ -525,7 +525,7 @@ public class MainGUI {
                 }
                 return new Range(0, 100);
             case "1500m (s)":
-                return new Range(2, 420);
+                return new Range(2, 480);
             case "100m Hurdles (s)":
                 return new Range(10, 30);
             case "200m (s)":
