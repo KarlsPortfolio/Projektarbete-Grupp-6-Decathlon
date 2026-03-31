@@ -1,6 +1,8 @@
 package stepDefinitions;
 
 import io.cucumber.java.After;
+import io.cucumber.java.Before;
+import io.cucumber.java.BeforeAll;
 import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
@@ -16,10 +18,18 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+
 import java.time.Duration;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CalcStepdefs {
+
     private WebDriver driver;
 
     private By nameField = By.cssSelector("#name2");
@@ -29,6 +39,17 @@ public class CalcStepdefs {
     private By standingsTable = By.cssSelector("#standings");
     private By calculateBtn = By.cssSelector("#save");
     private By confirmMsg = By.cssSelector("#msg");
+
+    @BeforeAll
+    public static void silenceMildWarnings() {
+
+        Logger.getLogger("org.openqa.selenium").setLevel(Level.SEVERE);
+
+        Logger.getLogger("org.openqa.selenium.devtools.CdpVersionFinder").setLevel(Level.SEVERE);
+        Logger.getLogger("org.openqa.selenium.manager.SeleniumManager").setLevel(Level.SEVERE);
+
+        System.out.println("Mild warnings were silenced to increase readability during testing");
+    }
 
     @Given("I am using {string} as a browser")
     public void iAmUsingAsABrowser(String browser) {
@@ -62,9 +83,23 @@ public class CalcStepdefs {
 
     }
 
-    @Then("I get points <points>")
-    public void iGetPointsPoints(double points) {
+    @Then("I get points {string}")
+    public void iGetPointsPoints(String points) {
+        System.out.println("Test");
         System.out.println(waitForElementVisible(driver, confirmMsg).getText());
+
+    }
+
+    @Then("I get the score {string}")
+    public void iGetTheScore(String points) {
+        String score_text = (waitForElementVisible(driver, confirmMsg).getText());
+        String score[] = score_text.split(" ");
+
+        int actual = Integer.parseInt(score[1]);
+        int expected = Integer.parseInt(points);
+
+        assertEquals(expected, actual);
+
 
     }
 
@@ -85,4 +120,6 @@ public class CalcStepdefs {
         Select dropDown = new Select(driver.findElement(locator));
         return dropDown;
     }
+
+
 }
