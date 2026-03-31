@@ -19,8 +19,13 @@ public class ExcelReader {
 		Sheet sheet = workbook.getSheetAt(0);
 
 		for (Row row : sheet) {
-			String[] cells = new String[3];
-			for (int i = 0; i < 3; i++) {
+			int width = row.getLastCellNum();
+			if (width < 0) {
+				width = 0;
+			}
+
+			String[] cells = new String[width];
+			for (int i = 0; i < width; i++) {
 				if (row.getCell(i) == null) {
 					cells[i] = "";
 				} else {

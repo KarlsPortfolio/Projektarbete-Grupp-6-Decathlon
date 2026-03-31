@@ -1,9 +1,12 @@
 const el = (id) => document.getElementById(id);
-const err = el('error');
-const msg = el('msg');
+const err = el("error");
+const msg = el("msg");
 
 const modes = {
   decathlon: {
+    apiName: "Decathlon",
+    standingsKey: "decathlon",
+    title: "Decathlon Web MVP",
     events: [
       { id: "100m", label: "100m (s)", min: 5, max: 20 },
       { id: "longJump", label: "Long Jump (cm)", min: 0, max: 1000 },
@@ -18,6 +21,9 @@ const modes = {
     ]
   },
   heptathlon: {
+    apiName: "Heptathlon",
+    standingsKey: "heptathlon",
+    title: "Heptathlon Web MVP",
     events: [
       { id: "100mHurdles", label: "100m Hurdles (s)", min: 10, max: 30 },
       { id: "highJump", label: "High Jump (cm)", min: 0, max: 300 },
@@ -30,32 +36,42 @@ const modes = {
   }
 };
 
+function getCurrentModeKey() {
+  return document.querySelector('input[name="mode"]:checked')?.value || "decathlon";
+}
+
 function getCurrentMode() {
-  return document.querySelector('input[name="mode"]:checked')?.value || 'decathlon';
+  return modes[getCurrentModeKey()];
 }
 
 function getCurrentEvents() {
-  return modes[getCurrentMode()].events;
+  return getCurrentMode().events;
 }
 
 function setError(text) {
   err.textContent = text;
-  msg.textContent = '';
+  msg.textContent = "";
 }
 
 function setMsg(text) {
   msg.textContent = text;
-  err.textContent = '';
+  err.textContent = "";
+}
+
+function updatePageTitle() {
+  const title = getCurrentMode().title;
+  document.title = title;
+  el("pageTitle").textContent = title;
 }
 
 function renderEventOptions() {
-  const eventSelect = el('event');
+  const eventSelect = el("event");
   const currentValue = eventSelect.value;
   const events = getCurrentEvents();
 
   eventSelect.innerHTML = events
     .map(event => `<option value="${event.id}">${event.label}</option>`)
-    .join('');
+    .join("");
 
   if (events.some(event => event.id === currentValue)) {
     eventSelect.value = currentValue;
@@ -63,72 +79,76 @@ function renderEventOptions() {
 }
 
 function renderStandingsHeader() {
-  const headers = ['<th>Name</th>']
-    .concat(getCurrentEvents().map(event => `<th>${event.label.replace(/\s+\([^)]+\)$/, '')}</th>`))
-    .concat('<th>Total</th>')
-    .join('');
+  const headers = ["<th>Name</th>"]
+    .concat(getCurrentEvents().map(event => `<th>${event.label.replace(/\s+\([^)]+\)$/, "")}</th>`))
+    .concat("<th>Total</th>")
+    .concat("<th>Delete</th>")
+    .join("");
 
-  el('standingsHeader').innerHTML = `<tr>${headers}</tr>`;
+  el("standingsHeader").innerHTML = `<tr>${headers}</tr>`;
 }
 
 async function refreshModeView() {
+  updatePageTitle();
   renderEventOptions();
   renderStandingsHeader();
   await renderStandings();
 }
 
 document.querySelectorAll('input[name="mode"]').forEach(radio => {
-  radio.addEventListener('change', refreshModeView);
+  radio.addEventListener("change", refreshModeView);
 });
 
-el('add').addEventListener('click', async () => {
-  const name = el('name').value.trim();
+el("add").addEventListener("click", async () => {
+  const name = el("name").value.trim();
+  const multiEventType = getCurrentMode().apiName;
 
   if (!name) {
-    setError('Name is required');
+    setError("Name is required");
     return;
   }
 
   try {
-    const res = await fetch('/api/competitors', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name })
+    const res = await fetch("/api/competitors", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, multiEventType })
     });
 
     if (!res.ok) {
       const t = await res.text();
-      setError(t || 'Failed to add competitor');
+      setError(t || "Failed to add competitor");
       return;
     }
 
-    setMsg('Added');
-    el('name').value = '';
+    setMsg("Added");
+    el("name").value = "";
     await renderStandings();
   } catch (e) {
-    setError('Network error');
+    setError("Network error");
   }
 });
 
-el('save').addEventListener('click', async () => {
-  const name = el('name2').value.trim();
-  const event = el('event').value;
-  const rawText = el('raw').value.trim();
+el("save").addEventListener("click", async () => {
+  const name = el("name2").value.trim();
+  const event = el("event").value;
+  const rawText = el("raw").value.trim();
+  const multiEventType = getCurrentMode().apiName;
 
   if (!name) {
-    setError('Name is required');
+    setError("Name is required");
     return;
   }
 
   if (!rawText) {
-    setError('Result is required');
+    setError("Result is required");
     return;
   }
 
   const raw = parseFloat(rawText);
 
   if (Number.isNaN(raw)) {
-    setError('Result is required');
+    setError("Result is required");
     return;
   }
 
@@ -139,110 +159,159 @@ el('save').addEventListener('click', async () => {
   }
 
   try {
-    const res = await fetch('/api/score', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, event, raw })
+    const res = await fetch("/api/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, multiEventType, event, raw })
     });
 
     if (!res.ok) {
       const t = await res.text();
-      setError(t || 'Score failed');
+      setError(t || "Score failed");
       return;
     }
 
     const json = await res.json();
     setMsg(`Saved: ${json.points} pts`);
-    el('raw').value = '';
+    el("raw").value = "";
     await renderStandings();
   } catch (e) {
-    setError('Score failed');
+    setError("Score failed");
   }
 });
 
-el('export').addEventListener('click', async () => {
+el("export").addEventListener("click", async () => {
   try {
-    const res = await fetch('/api/export.csv');
+    const res = await fetch("/api/export.csv");
     if (!res.ok) {
-      setError('Export failed');
+      setError("Export failed");
       return;
     }
+
     const text = await res.text();
-    const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a');
+    const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = 'results.csv';
+    a.download = "results.csv";
     a.click();
   } catch (e) {
-    setError('Export failed');
+    setError("Export failed");
   }
 });
 
-el('import').addEventListener('click', async () => {
-  const fileInput = el('importFile');
+el("import").addEventListener("click", async () => {
+  const fileInput = el("importFile");
   const file = fileInput.files[0];
 
   if (!file) {
-    setError('File is required');
+    setError("File is required");
     return;
   }
 
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
 
   try {
-    const res = await fetch('/api/import.csv', {
-      method: 'POST',
+    const res = await fetch("/api/import.csv", {
+      method: "POST",
       body: formData
     });
 
     if (!res.ok) {
       const t = await res.text();
-      setError(t || 'Import failed');
+      setError(t || "Import failed");
       return;
     }
 
-    setMsg('Import completed');
-    fileInput.value = '';
+    setMsg("Import completed");
+    fileInput.value = "";
     await renderStandings();
   } catch (e) {
-    setError('Import failed');
+    setError("Import failed");
   }
 });
 
-async function renderStandings() {
+async function deleteCompetitor(name) {
+  const multiEventType = getCurrentMode().apiName;
+  const confirmed = window.confirm(`Delete competitor ${name}?`);
+
+  if (!confirmed) {
+    return;
+  }
+
   try {
-    const res = await fetch('/api/standings');
+    const res = await fetch("/api/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, multiEventType })
+    });
 
     if (!res.ok) {
-      setError('Could not load standings');
+      const t = await res.text();
+      setError(t || "Delete failed");
+      return;
+    }
+
+    setMsg("Competitor deleted");
+    await renderStandings();
+  } catch (e) {
+    setError("Delete failed");
+  }
+}
+
+async function renderStandings() {
+  try {
+    const res = await fetch("/api/standings");
+
+    if (!res.ok) {
+      setError("Could not load standings");
       return;
     }
 
     const data = await res.json();
-    const events = getCurrentEvents();
-    const sorted = [...data].sort((a, b) => (b.total || 0) - (a.total || 0));
+    const mode = getCurrentMode();
+    const list = data[mode.standingsKey] || [];
+    const events = mode.events;
 
-    const rows = sorted.map(r => {
+    const rows = list.map(r => {
       const scores = r.scores || {};
-      const eventCells = events.map(event => `<td>${scores[event.id] ?? ''}</td>`).join('');
+      const eventCells = events.map(event => `<td>${scores[event.id] ?? ""}</td>`).join("");
       const total = events.reduce((sum, event) => sum + (Number(scores[event.id]) || 0), 0);
 
       return `<tr>
-        <td>${escapeHtml(r.name ?? '')}</td>
+        <td>${escapeHtml(r.name ?? "")}</td>
         ${eventCells}
         <td>${total}</td>
+        <td><button type="button" class="delete-btn" data-name="${escapeHtmlAttr(r.name ?? "")}">🗑️</button></td>
       </tr>`;
-    }).join('');
+    }).join("");
 
-    el('standings').innerHTML = rows;
+    el("standings").innerHTML = rows;
+
+    document.querySelectorAll(".delete-btn").forEach(button => {
+      button.addEventListener("click", () => deleteCompetitor(button.dataset.name));
+    });
   } catch (e) {
-    setError('Could not load standings');
+    setError("Could not load standings");
   }
 }
 
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return String(s).replace(/[&<>"]/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;"
+  }[c]));
+}
+
+function escapeHtmlAttr(s) {
+  return String(s).replace(/["&<>]/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;"
+  }[c]));
 }
 
 refreshModeView();

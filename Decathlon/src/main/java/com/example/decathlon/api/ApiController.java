@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,35 +22,62 @@ public class ApiController {
     @PostMapping("/competitors")
     public ResponseEntity<?> add(@RequestBody Map<String, String> body) {
         String name = Optional.ofNullable(body.get("name")).orElse("").trim();
+        String multiEventType = Optional.ofNullable(body.get("multiEventType")).orElse("").trim();
 
         if (name.isEmpty()) {
             return ResponseEntity.badRequest().body("Name is required");
         }
 
-        if (getCount() >= 40) {
+        if (multiEventType.isEmpty()) {
+            return ResponseEntity.badRequest().body("multiEventType is required");
+        }
+
+        if (getCount(multiEventType) >= 40) {
             return ResponseEntity.status(429).body("Too many competitors");
         }
 
-        comp.addCompetitor(name);
+        comp.addCompetitor(name, multiEventType);
         return ResponseEntity.status(201).build();
     }
 
-    private int getCount() {
-        return comp.standings().size();
+    private int getCount(String multiEventType) {
+        return comp.count(multiEventType);
     }
 
     @PostMapping("/score")
     public ResponseEntity<?> score(@RequestBody ScoreReq r) {
         try {
-            int pts = comp.score(r.name(), r.event(), r.raw());
+            int pts = comp.score(r.name(), r.multiEventType(), r.event(), r.raw());
             return ResponseEntity.ok(Map.of("points", pts));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
+    @PostMapping("/delete")
+    public ResponseEntity<?> delete(@RequestBody Map<String, String> body) {
+        String name = Optional.ofNullable(body.get("name")).orElse("").trim();
+        String multiEventType = Optional.ofNullable(body.get("multiEventType")).orElse("").trim();
+
+        if (name.isEmpty()) {
+            return ResponseEntity.badRequest().body("Name is required");
+        }
+
+        if (multiEventType.isEmpty()) {
+            return ResponseEntity.badRequest().body("multiEventType is required");
+        }
+
+        boolean removed = comp.deleteCompetitor(name, multiEventType);
+
+        if (!removed) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/standings")
-    public List<Map<String, Object>> standings() {
+    public Map<String, Object> standings() {
         return comp.standings();
     }
 
@@ -73,5 +99,15 @@ public class ApiController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Import failed");
         }
+    }
+
+    private String normalizeTypeKey(String multiEventType) {
+        if ("Decathlon".equalsIgnoreCase(multiEventType)) {
+            return "decathlon";
+        }
+        if ("Heptathlon".equalsIgnoreCase(multiEventType)) {
+            return "heptathlon";
+        }
+        throw new IllegalArgumentException("Unknown multiEventType");
     }
 }
