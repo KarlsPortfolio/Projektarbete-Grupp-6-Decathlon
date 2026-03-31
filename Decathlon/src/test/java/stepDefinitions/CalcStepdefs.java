@@ -13,6 +13,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -20,10 +21,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 import java.time.Duration;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,10 +54,11 @@ public class CalcStepdefs {
         if(browser.equalsIgnoreCase("chrome")){
             driver = new ChromeDriver();
 
-        }else if(browser.equalsIgnoreCase("edge")){
+        } else if(browser.equalsIgnoreCase("edge")){
+            System.setProperty("webdriver.edge.driver", "C:\\WebDrivers\\edgedriver_win64\\msedgedriver.exe");
             driver = new EdgeDriver();
 
-        }else if(browser.equalsIgnoreCase("firefox")){
+        } else if(browser.equalsIgnoreCase("firefox")){
             driver = new FirefoxDriver();
         }
     }
@@ -77,17 +76,6 @@ public class CalcStepdefs {
         waitForDropDownVisible(driver,eventDropDown).selectByValue(event);
         waitForElementVisible(driver, resultField).sendKeys(result);
         waitForElementVisible(driver, calculateBtn).click();
-
-
-
-
-    }
-
-    @Then("I get points {string}")
-    public void iGetPointsPoints(String points) {
-        System.out.println("Test");
-        System.out.println(waitForElementVisible(driver, confirmMsg).getText());
-
     }
 
     @Then("I get the score {string}")
@@ -99,13 +87,13 @@ public class CalcStepdefs {
         int expected = Integer.parseInt(points);
 
         assertEquals(expected, actual);
-
-
     }
 
     @After
     public void breakDown(){
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
     }
 
     private static WebElement waitForElementVisible(WebDriver driver, By locator) {
