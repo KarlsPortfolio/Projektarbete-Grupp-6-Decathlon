@@ -13,6 +13,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -59,6 +60,7 @@ public class CalcStepdefs {
         }else if(browser.equalsIgnoreCase("edge")){
             driver = new EdgeDriver();
 
+
         }else if(browser.equalsIgnoreCase("firefox")){
             driver = new FirefoxDriver();
         }
@@ -83,12 +85,6 @@ public class CalcStepdefs {
 
     }
 
-    @Then("I get points {string}")
-    public void iGetPointsPoints(String points) {
-        System.out.println("Test");
-        System.out.println(waitForElementVisible(driver, confirmMsg).getText());
-
-    }
 
     @Then("I get the score {string}")
     public void iGetTheScore(String points) {
@@ -99,8 +95,6 @@ public class CalcStepdefs {
         int expected = Integer.parseInt(points);
 
         assertEquals(expected, actual);
-
-
     }
 
     @After
