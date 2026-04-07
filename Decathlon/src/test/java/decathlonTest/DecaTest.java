@@ -301,5 +301,37 @@ public class DecaTest {
         assertEquals(expected, actual);
     }
 
+    //Emelie
+    @Test
+    public void testDecaValidInputLongJump() {
+        DecaLongJump longJump = new DecaLongJump();
+
+        int actual = longJump.calculateResult(750); // 7.50 m
+        int expected = 935;
+
+        assertEquals(expected, actual);
+    }
+
+    //Emelie
+    @Test
+    public void testDecaLowerBoundaryInputLongJump() {
+        DecaLongJump longJump = new DecaLongJump();
+
+        int actual = longJump.calculateResult(220);
+        int expected = 0;
+
+        assertEquals(expected, actual);
+    }
+
+    //Emelie
+    @Test
+    public void testDecaUpperBoundaryInputLongJump() {
+        DecaLongJump longJump = new DecaLongJump();
+
+        int actual = longJump.calculateResult(1000);
+        int expected = 1765;
+
+        assertEquals(expected, actual);
+    }
 
 }

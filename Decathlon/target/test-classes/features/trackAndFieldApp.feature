@@ -11,7 +11,7 @@ Testscenario 2: Calculate points with all fields valid (heptathlon)
     Then I get the score "<points>"
 
     Examples:
-    |browser|page|competitorName|multiEvent|event|result|points |
-    |chrome |calculator|Robin   |decathlon |longJump |430 |255|
-    |edge |calculator|Robin   |decathlon |longJump|430    |255  |
-    |firefox |calculator|Robin   |decathlon |longJump|430   |255|
+      | browser | page       | competitorName | multiEvent | event    | result | points |
+      | chrome  | calculator | Robin          | decathlon  | longJump | 430    | 255    |
+      | edge    | calculator | Robin          | decathlon  | longJump | 430    | 255    |
+      | firefox | calculator | Robin          | decathlon  | longJump | 430    | 255    |

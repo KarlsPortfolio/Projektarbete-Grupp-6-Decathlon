@@ -21,10 +21,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 import java.time.Duration;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,11 +54,11 @@ public class CalcStepdefs {
         if(browser.equalsIgnoreCase("chrome")){
             driver = new ChromeDriver();
 
-        }else if(browser.equalsIgnoreCase("edge")){
+        } else if(browser.equalsIgnoreCase("edge")){
+            System.setProperty("webdriver.edge.driver", "C:\\WebDrivers\\edgedriver_win64\\msedgedriver.exe");
             driver = new EdgeDriver();
 
-
-        }else if(browser.equalsIgnoreCase("firefox")){
+        } else if(browser.equalsIgnoreCase("firefox")){
             driver = new FirefoxDriver();
         }
     }
@@ -79,12 +76,7 @@ public class CalcStepdefs {
         waitForDropDownVisible(driver,eventDropDown).selectByValue(event);
         waitForElementVisible(driver, resultField).sendKeys(result);
         waitForElementVisible(driver, calculateBtn).click();
-
-
-
-
     }
-
 
     @Then("I get the score {string}")
     public void iGetTheScore(String points) {
@@ -99,7 +91,9 @@ public class CalcStepdefs {
 
     @After
     public void breakDown(){
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
     }
 
     private static WebElement waitForElementVisible(WebDriver driver, By locator) {
