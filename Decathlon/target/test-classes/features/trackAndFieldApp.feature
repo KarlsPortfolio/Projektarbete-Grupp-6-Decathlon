@@ -14,4 +14,14 @@ Feature: Track and Field Calculator App
       | browser | page       | competitorName | multiEvent | event    | result | points |
       | chrome  | calculator | Robin          | decathlon  | longJump | 430    | 255    |
       | edge    | calculator | Robin          | decathlon  | longJump | 430    | 255    |
-      | firefox | calculator | Robin          | decathlon  | longJump | 430    | 255|
+      | firefox | calculator | Robin          | decathlon  | longJump | 430    | 255    |
+
+  Scenario Outline: Calculate multiple valid competitors
+    Given I am using "<browser>" as a browser
+    And I am on page "<page>"
+    When I calculate points "<competitorName>" "<multiEvent>" "<event>" "<result>" for "<amount>" competitors
+    Then I get the score "<points>"
+
+  Examples:
+    | browser | page       | competitorName | multiEvent | event    | result | amount | points |
+    | chrome  | calculator | Ann            | decathlon  | longJump | 430    | 3      | 255    |

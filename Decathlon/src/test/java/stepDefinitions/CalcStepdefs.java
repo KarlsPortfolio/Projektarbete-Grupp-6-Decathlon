@@ -78,6 +78,16 @@ public class CalcStepdefs {
         waitForElementVisible(driver, calculateBtn).click();
     }
 
+    @When("I calculate points {string} {string} {string} {string} for {string} competitors")
+    public void iCalculatePointsForCompetitors(String competitorName, String multiEvent, String event, String result, String amount) {
+        for (int i = 0; i < Integer.parseInt(amount); i++) {
+            waitForElementVisible(driver, nameField).sendKeys(competitorName+i);
+            waitForDropDownVisible(driver,eventDropDown).selectByValue(event);
+            waitForElementVisible(driver, resultField).sendKeys(result);
+            waitForElementVisible(driver, calculateBtn).click();
+        }
+    }
+
     @Then("I get the score {string}")
     public void iGetTheScore(String points) {
         String score_text = (waitForElementVisible(driver, confirmMsg).getText());
@@ -108,6 +118,4 @@ public class CalcStepdefs {
         Select dropDown = new Select(driver.findElement(locator));
         return dropDown;
     }
-
-
 }
