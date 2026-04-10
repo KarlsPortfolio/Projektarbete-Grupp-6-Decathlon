@@ -20,7 +20,9 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 
+import javax.lang.model.util.Elements;
 import java.time.Duration;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,6 +39,8 @@ public class CalcStepdefs {
     private By standingsTable = By.cssSelector("#standings");
     private By calculateBtn = By.cssSelector("#save");
     private By confirmMsg = By.cssSelector("#msg");
+    private By standingsList = By.cssSelector("#standings");
+    private By standingRow = By.cssSelector("#standings > tr");
 
     @BeforeAll
     public static void silenceMildWarnings() {
@@ -99,6 +103,15 @@ public class CalcStepdefs {
         assertEquals(expected, actual);
     }
 
+    @Then("I get {string} competitors in standings")
+    public void iGetCompetitorsInStandings(String amount) {
+        List<WebElement> elements = getElements(driver, standingRow);
+        int actual = elements.size();
+        int expected = Integer.parseInt(amount);
+
+        assertEquals(expected, actual);
+    }
+
     @After
     public void breakDown(){
         if (driver != null) {
@@ -117,5 +130,10 @@ public class CalcStepdefs {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
         Select dropDown = new Select(driver.findElement(locator));
         return dropDown;
+    }
+
+    public static List<WebElement> getElements(WebDriver driver, By by){
+        List<WebElement> output = driver.findElements(by);
+        return output;
     }
 }

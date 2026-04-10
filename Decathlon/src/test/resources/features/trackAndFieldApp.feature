@@ -20,11 +20,11 @@ Feature: Track and Field Calculator App
     Given I am using "<browser>" as a browser
     And I am on page "<page>"
     When I calculate points "<competitorName>" "<multiEvent>" "<event>" "<result>" for "<amount>" competitors
-    Then I get the score "<points>"
+    Then I get "<amount>" competitors in standings
 
-  Examples:
-    | browser | page       | competitorName | multiEvent | event    | result | amount | points |
-    | chrome  | calculator | Ann            | decathlon  | longJump | 430    | 3      | 255    |
-    | edge    | calculator | Ann            | decathlon  | longJump | 430    | 3      | 255    |
-    | firefox | calculator | Ann            | decathlon  | longJump | 430    | 3      | 255    |
+    Examples:
+      | browser | page       | competitorName | multiEvent | event    | result | amount |  |
+      | chrome  | calculator | Ann            | decathlon  | longJump | 430    | 10     |  |
+      | edge    | calculator | Ann            | decathlon  | longJump | 430    | 17     |  |
+      | firefox | calculator | Ann            | decathlon  | longJump | 430    | 40     |  |
 
