@@ -68,6 +68,15 @@ public class CompetitionService {
         String normalizedType = normalizeType(multiEventType);
         String key = competitorKey(name, normalizedType);
         Competitor c = competitors.computeIfAbsent(key, k -> new Competitor(name, normalizedType));
+//        double raw;
+
+//        if(rawValue.contains(",")){
+//            rawValue = rawValue.replace(',', '.');
+//            raw = Double.parseDouble(rawValue);
+//
+//
+//        }
+
         int pts = scoring.score(normalizedType, eventId, raw);
         c.points.put(eventId, pts);
         return pts;

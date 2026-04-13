@@ -135,6 +135,11 @@ el("save").addEventListener("click", async () => {
   const rawText = el("raw").value.trim();
   const multiEventType = getCurrentMode().apiName;
 
+//Om resultat innehåller kommatecken, ersätt med punkt
+  if(rawText.includes(",")){
+   rawText.replace(",", ".");
+  }
+
   if (!name) {
     setError("Name is required");
     return;

@@ -135,6 +135,10 @@ el("save").addEventListener("click", async () => {
   const rawText = el("raw").value.trim();
   const multiEventType = getCurrentMode().apiName;
 
+  if(rawText.includes(",")){
+   rawText.replace(",", ".");
+  }
+
   if (!name) {
     setError("Name is required");
     return;
