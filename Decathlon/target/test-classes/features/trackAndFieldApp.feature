@@ -14,4 +14,4 @@ Feature: Track and Field Calculator App
       | browser | page       | competitorName | multiEvent | event    | result | points |
       | chrome  | calculator | Robin          | decathlon  | longJump | 430    | 255    |
       | edge    | calculator | Robin          | decathlon  | longJump | 430    | 255    |
-      | firefox | calculator | Robin          | decathlon  | longJump | 430    | 255|
+      | firefox | calculator | Robin          | decathlon  | longJump | 430    | 255    |

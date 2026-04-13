@@ -29,7 +29,7 @@ public class ScoringService {
     private final Map<String, Formula> formulas = new HashMap<>();
 
     public ScoringService() {
-        formulas.put("Decathlon:100m", new Formula(25.4347, 18, 1.81, true, 5, 20));
+        formulas.put("Decathlon:100m", new Formula(25.4347, 18, 1.81, true, 5, 18));
         formulas.put("Decathlon:longJump", new Formula(0.14354, 220, 1.4, false, 0, 1000));
         formulas.put("Decathlon:shotPut", new Formula(51.39, 1.5, 1.05, false, 0, 30));
         formulas.put("Decathlon:highJump", new Formula(0.8465, 75, 1.42, false, 0, 300));
