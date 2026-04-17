@@ -258,6 +258,11 @@ public class MainGUI {
             return;
         }
 
+        if (rawValue < 0) {
+            JOptionPane.showMessageDialog(frame, "Result cannot be negative.");
+            return;
+        }
+
         if (rawValue < event.min || rawValue > event.max) {
             int choice = JOptionPane.showConfirmDialog(
                     frame,
