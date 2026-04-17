@@ -1,4 +1,4 @@
-package runners;
+package ui.stepDefinitions.runners;
 
 
 import io.cucumber.junit.Cucumber;
@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 @RunWith(Cucumber.class)
 @CucumberOptions(
         features = "src/test/resources/features",
-        glue = "stepDefinitions.selenium", // Pekar mot Playwright stepDefs
+        glue = "ui.stepDefinitions.selenium", // Pekar mot Playwright stepDefs
         plugin = {"pretty", "html:target/cucumber-playwright-report.html"}
 )
 public class SeleniumRunner {}

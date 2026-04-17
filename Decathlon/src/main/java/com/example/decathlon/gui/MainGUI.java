@@ -265,6 +265,11 @@ public class MainGUI {
             return;
         }
 
+        if (rawValue < 0) {
+            JOptionPane.showMessageDialog(frame, "Result cannot be negative.");
+            return;
+        }
+
         if (rawValue < event.min || rawValue > event.max) {
             int choice = JOptionPane.showConfirmDialog(
                     frame,
@@ -334,8 +339,10 @@ public class MainGUI {
         File file = fileChooser.getSelectedFile();
         String filename = file.getAbsolutePath();
         if (!filename.toLowerCase().endsWith(".xlsx")) {
-            filename += ".xlsx";
+           filename += ".xlsx";
         }
+
+
 
         List<String[]> rows = new ArrayList<>();
 

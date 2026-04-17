@@ -1,10 +1,12 @@
-package pages.playwright;
+package ui.stepDefinitions.pages.playwright;
 
 
 import com.microsoft.playwright.ElementHandle;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.SelectOption;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.*;
+//import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 import java.util.List;
 
@@ -41,9 +43,14 @@ public class CalculatorPageObjectModel {
 
 
             //String output = waitForElement(page, confirmMsg).textContent();
-            String output1 = getElement(page, confirmMsg).textContent();
+            String output2 = page.locator(confirmMsg).textContent();
+            Locator scoreMessage = getElement(page, confirmMsg);
+            assertThat(scoreMessage).not().isEmpty();
+            //scoreMessage.waitFor();
+
+
             //getElement(page,decathlonHepaRadioBtn).click();
-            return output1;
+            return scoreMessage.textContent();
 
 
 

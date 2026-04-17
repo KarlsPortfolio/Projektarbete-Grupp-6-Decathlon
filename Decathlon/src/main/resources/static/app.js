@@ -152,6 +152,11 @@ el("save").addEventListener("click", async () => {
 
   const raw = parseFloat(rawText);
 
+  if (raw < 0) {
+       setError("Result cannot be negative");
+       return;
+     }
+
   if (Number.isNaN(raw)) {
     setError("Result is required");
     return;

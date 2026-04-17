@@ -1,4 +1,4 @@
-package stepDefinitions.selenium;
+package ui.stepDefinitions.selenium;
 
 import io.cucumber.java.After;
 import io.cucumber.java.BeforeAll;

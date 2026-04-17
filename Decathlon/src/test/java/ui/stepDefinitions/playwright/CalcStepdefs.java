@@ -1,11 +1,11 @@
-package stepDefinitions.playwright;
+package ui.stepDefinitions.playwright;
 
 import com.microsoft.playwright.*;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import pages.playwright.CalculatorPageObjectModel;
+import ui.stepDefinitions.pages.playwright.CalculatorPageObjectModel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -54,7 +54,10 @@ public class CalcStepdefs {
     public void iGetTheScore(String points) {
         boolean isDecathlon = true;
 
+
+
         String score_text = calc.getScore();
+        System.out.printf(score_text);
 
         String score[] = score_text.split(" ");
 
