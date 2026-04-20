@@ -60,9 +60,9 @@ public class ScoringService {
             throw new IllegalArgumentException("Unknown event");
         }
 
-        if (raw < f.min || raw > f.max) {
-            throw new IllegalArgumentException("Result out of range");
-        }
+//      if (raw < f.min || raw > f.max) {
+//            throw new IllegalArgumentException("Result out of range");
+//       }
 
         if (f.track) {
             return (int) (f.A * Math.pow((f.B - raw), f.C));

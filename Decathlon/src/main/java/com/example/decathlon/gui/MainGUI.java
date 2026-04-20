@@ -245,6 +245,12 @@ public class MainGUI {
         String resultText = resultField.getText().trim();
         EventDef event = (EventDef) disciplineComboBox.getSelectedItem();
 
+        //Om resultat innehåller kommatecken, ersätt med punkt
+        if(resultText.contains(",")){
+            resultText = resultText.replace(',', '.');
+
+        }
+
         if (name.isEmpty() || resultText.isEmpty() || event == null) {
             JOptionPane.showMessageDialog(frame, "Please fill in all fields.");
             return;
