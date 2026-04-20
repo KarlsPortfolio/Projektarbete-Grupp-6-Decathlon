@@ -57,6 +57,15 @@ function setMsg(text) {
   msg.textContent = text;
   err.textContent = "";
 }
+//Skapar ett bekräftelsefönster
+async function confirmValue() {
+  const confirmed = window.confirm(`The value is outside normal range. Do you want to use the result anyway?`);
+
+  if (!confirmed) {
+   return;
+  }
+  }
+
 
 function updatePageTitle() {
   const title = getCurrentMode().title;
@@ -135,6 +144,11 @@ el("save").addEventListener("click", async () => {
   const rawText = el("raw").value.trim();
   const multiEventType = getCurrentMode().apiName;
 
+  //Om resultat innehåller kommatecken, ersätt med punkt
+    if(rawText.includes(",")){
+     rawText.replace(",", ".");
+    }
+
   if (!name) {
     setError("Name is required");
     return;
@@ -144,6 +158,8 @@ el("save").addEventListener("click", async () => {
     setError("Result is required");
     return;
   }
+
+
 
   const raw = parseFloat(rawText);
 
@@ -159,8 +175,12 @@ if (raw < 0) {
 
   const limits = getCurrentEvents().find(e => e.id === event);
   if (limits && (raw < limits.min || raw > limits.max)) {
-    setError(`Result must be between ${limits.min} and ${limits.max}`);
-    return;
+
+    //setError(`Result must be between ${limits.min} and ${limits.max}`);
+    //return;
+
+    confirmValue();
+
   }
 
   try {
