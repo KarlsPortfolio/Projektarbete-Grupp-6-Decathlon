@@ -1,342 +1,189 @@
 const el = (id) => document.getElementById(id);
-const err = el("error");
-const msg = el("msg");
+const err = el('error');
+const msg = el('msg');
+const disciplineSelect = el('discipline');
+const eventSelect = el('event');
+const standingsHeader = el('standingsHeader');
 
-const modes = {
-  decathlon: {
-    apiName: "Decathlon",
-    standingsKey: "decathlon",
-    title: "Decathlon Web MVP",
-    events: [
-      { id: "100m", label: "100m (s)", min: 5, max: 20 },
-      { id: "longJump", label: "Long Jump (cm)", min: 0, max: 1000 },
-      { id: "shotPut", label: "Shot Put (m)", min: 0, max: 30 },
-      { id: "highJump", label: "High Jump (cm)", min: 0, max: 300 },
-      { id: "400m", label: "400m (s)", min: 20, max: 100 },
-      { id: "110mHurdles", label: "110m Hurdles (s)", min: 10, max: 30 },
-      { id: "discusThrow", label: "Discus Throw (m)", min: 0, max: 85 },
-      { id: "poleVault", label: "Pole Vault (cm)", min: 0, max: 1000 },
-      { id: "javelinThrow", label: "Javelin Throw (m)", min: 0, max: 110 },
-      { id: "1500m", label: "1500m (s)", min: 150, max: 400 }
-    ]
-  },
-  heptathlon: {
-    apiName: "Heptathlon",
-    standingsKey: "heptathlon",
-    title: "Heptathlon Web MVP",
-    events: [
-      { id: "100mHurdles", label: "100m Hurdles (s)", min: 10, max: 30 },
-      { id: "highJump", label: "High Jump (cm)", min: 0, max: 300 },
-      { id: "shotPut", label: "Shot Put (m)", min: 0, max: 30 },
-      { id: "200m", label: "200m (s)", min: 20, max: 100 },
-      { id: "longJump", label: "Long Jump (cm)", min: 0, max: 1000 },
-      { id: "javelinThrow", label: "Javelin Throw (m)", min: 0, max: 110 },
-      { id: "800m", label: "800m (s)", min: 70, max: 250 }
-    ]
-  }
-};
+const nameInput = el('name2');
+const menu = el('competitorMenu');
 
-function getCurrentModeKey() {
-  return document.querySelector('input[name="mode"]:checked')?.value || "decathlon";
-}
+let currentEvents = [];
+let competitorNames = [];
 
-function getCurrentMode() {
-  return modes[getCurrentModeKey()];
-}
+function setError(text) { err.textContent = text; msg.textContent = ''; }
+function setMsg(text) { msg.textContent = text; err.textContent = ''; }
 
-function getCurrentEvents() {
-  return getCurrentMode().events;
-}
-
-function setError(text) {
-  err.textContent = text;
-  msg.textContent = "";
-}
-
-function setMsg(text) {
-  msg.textContent = text;
-  err.textContent = "";
-}
-//Skapar ett bekräftelsefönster
-async function confirmValue() {
-  const confirmed = window.confirm(`The value is outside normal range. Do you want to use the result anyway?`);
-
-  if (!confirmed) {
-   return;
-  }
+async function loadEvents() {
+  const discipline = disciplineSelect.value;
+  try {
+    const res = await fetch(`/api/events?discipline=${encodeURIComponent(discipline)}`);
+    if (!res.ok) {
+      setError(`Could not load events (status ${res.status})`);
+      currentEvents = [];
+    } else {
+      currentEvents = await res.json();
+    }
+  } catch (e) {
+    setError('Could not load events');
+    currentEvents = [];
   }
 
+  eventSelect.innerHTML = currentEvents
+    .map(e => `<option value="${e.id}">${e.label} (${e.unit})</option>`)
+    .join('');
 
-function updatePageTitle() {
-  const title = getCurrentMode().title;
-  document.title = title;
-  el("pageTitle").textContent = title;
+  standingsHeader.innerHTML = '<th>Name</th>'
+    + currentEvents.map(e => `<th>${e.label}</th>`).join('')
+    + '<th>Total</th>';
 }
 
-function renderEventOptions() {
-  const eventSelect = el("event");
-  const currentValue = eventSelect.value;
-  const events = getCurrentEvents();
-
-  eventSelect.innerHTML = events
-    .map(event => `<option value="${event.id}">${event.label}</option>`)
-    .join("");
-
-  if (events.some(event => event.id === currentValue)) {
-    eventSelect.value = currentValue;
+async function loadCompetitors() {
+  try {
+    const res = await fetch(`/api/competitors?discipline=${encodeURIComponent(disciplineSelect.value)}`);
+    competitorNames = res.ok ? await res.json() : [];
+  } catch (e) {
+    competitorNames = [];
+  }
+  if (!menu.hidden) {
+    renderMenu(competitorNames);
   }
 }
 
-function renderStandingsHeader() {
-  const headers = ["<th>Name</th>"]
-    .concat(getCurrentEvents().map(event => `<th>${event.label.replace(/\s+\([^)]+\)$/, "")}</th>`))
-    .concat("<th>Total</th>")
-    .concat("<th>Delete</th>")
-    .join("");
-
-  el("standingsHeader").innerHTML = `<tr>${headers}</tr>`;
+function renderMenu(names) {
+  menu.innerHTML = names.map(n => `<li role="option">${escapeHtml(n)}</li>`).join('');
+  menu.hidden = names.length === 0;
 }
 
-async function refreshModeView() {
-  updatePageTitle();
-  renderEventOptions();
-  renderStandingsHeader();
+nameInput.addEventListener('focus', () => renderMenu(competitorNames));
+nameInput.addEventListener('click', () => renderMenu(competitorNames));
+nameInput.addEventListener('input', () => {
+  const q = nameInput.value.trim().toLowerCase();
+  renderMenu(competitorNames.filter(n => n.toLowerCase().includes(q)));
+});
+nameInput.addEventListener('blur', () => { menu.hidden = true; });
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { menu.hidden = true; }
+});
+menu.addEventListener('mousedown', (e) => {
+  const li = e.target.closest('li');
+  if (!li) return;
+  e.preventDefault();
+  nameInput.value = li.textContent;
+  menu.hidden = true;
+});
+
+function parseResult(text) {
+  const t = text.trim().replace(',', '.');
+  if (t === '') {
+    return { error: 'Please enter a result' };
+  }
+  if (!/^-?(\d+\.?\d*|\.\d+)$/.test(t)) {
+    return { error: 'Please enter a valid number for the result' };
+  }
+  return { value: parseFloat(t) };
+}
+
+disciplineSelect.addEventListener('change', async () => {
+  menu.hidden = true;
+  menu.innerHTML = '';
+  competitorNames = [];
+  await loadEvents();
+  await loadCompetitors();
   await renderStandings();
-}
-
-document.querySelectorAll('input[name="mode"]').forEach(radio => {
-  radio.addEventListener("change", refreshModeView);
 });
 
-el("add").addEventListener("click", async () => {
-  const name = el("name").value.trim();
-  const multiEventType = getCurrentMode().apiName;
-
-  if (!name) {
-    setError("Name is required");
-    return;
-  }
-
+el('add').addEventListener('click', async () => {
+  const name = el('name').value;
   try {
-    const res = await fetch("/api/competitors", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, multiEventType })
+    const res = await fetch('/api/competitors', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, discipline: disciplineSelect.value })
     });
-
     if (!res.ok) {
       const t = await res.text();
-      setError(t || "Failed to add competitor");
-      return;
+      setError(t || 'Failed to add competitor');
+    } else {
+      setMsg('Added');
+      el('name').value = '';
     }
-
-    setMsg("Added");
-    el("name").value = "";
+    await loadCompetitors();
     await renderStandings();
   } catch (e) {
-    setError("Network error");
+    setError('Network error');
   }
 });
 
-el("save").addEventListener("click", async () => {
-  const name = el("name2").value.trim();
-  const event = el("event").value;
-  const rawText = el("raw").value.trim();
-  const multiEventType = getCurrentMode().apiName;
-
-  //Om resultat innehåller kommatecken, ersätt med punkt
-    if(rawText.includes(",")){
-     rawText.replace(",", ".");
-    }
-
-  if (!name) {
-    setError("Name is required");
+el('save').addEventListener('click', async () => {
+  const parsed = parseResult(el('raw').value);
+  if (parsed.error) {
+    setError(parsed.error);
     return;
   }
-
-  if (!rawText) {
-    setError("Result is required");
-    return;
-  }
-
-
-
-  const raw = parseFloat(rawText);
-
-if (raw < 0) {
-       setError("Result cannot be negative");
-       return;
-     }
-
-  if (Number.isNaN(raw)) {
-    setError("Result is required");
-    return;
-  }
-
-  const limits = getCurrentEvents().find(e => e.id === event);
-  if (limits && (raw < limits.min || raw > limits.max)) {
-
-    //setError(`Result must be between ${limits.min} and ${limits.max}`);
-    //return;
-
-    confirmValue();
-
-  }
-
+  const body = {
+    name: nameInput.value,
+    event: eventSelect.value,
+    raw: parsed.value
+  };
   try {
-    const res = await fetch("/api/score", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, multiEventType, event, raw })
+    const res = await fetch('/api/score', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
-
     if (!res.ok) {
       const t = await res.text();
-      setError(t || "Score failed");
-      return;
+      setError(t || 'Failed to save score');
+    } else {
+      const json = await res.json();
+      setMsg(`Saved: ${json.points} pts`);
     }
-
-    const json = await res.json();
-    setMsg(`Saved: ${json.points} pts`);
-    el("raw").value = "";
     await renderStandings();
   } catch (e) {
-    setError("Score failed");
+    setError('Score failed');
   }
 });
 
-el("export").addEventListener("click", async () => {
+el('export').addEventListener('click', async () => {
   try {
-    const res = await fetch("/api/export.csv");
-    if (!res.ok) {
-      setError("Export failed");
-      return;
-    }
-
+    const res = await fetch(`/api/export.csv?discipline=${encodeURIComponent(disciplineSelect.value)}`);
     const text = await res.text();
-    const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
-    const a = document.createElement("a");
+    const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = "results.csv";
+    a.download = 'results.csv';
     a.click();
   } catch (e) {
-    setError("Export failed");
+    setError('Export failed');
   }
 });
-
-el("import").addEventListener("click", async () => {
-  const fileInput = el("importFile");
-  const file = fileInput.files[0];
-
-  if (!file) {
-    setError("File is required");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", file);
-
-  try {
-    const res = await fetch("/api/import.csv", {
-      method: "POST",
-      body: formData
-    });
-
-    if (!res.ok) {
-      const t = await res.text();
-      setError(t || "Import failed");
-      return;
-    }
-
-    setMsg("Import completed");
-    fileInput.value = "";
-    await renderStandings();
-  } catch (e) {
-    setError("Import failed");
-  }
-});
-
-async function deleteCompetitor(name) {
-  const multiEventType = getCurrentMode().apiName;
-  const confirmed = window.confirm(`Delete competitor ${name}?`);
-
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-    const res = await fetch("/api/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, multiEventType })
-    });
-
-    if (!res.ok) {
-      const t = await res.text();
-      setError(t || "Delete failed");
-      return;
-    }
-
-    setMsg("Competitor deleted");
-    await renderStandings();
-  } catch (e) {
-    setError("Delete failed");
-  }
-}
 
 async function renderStandings() {
   try {
-    const res = await fetch("/api/standings");
-
-    if (!res.ok) {
-      setError("Could not load standings");
-      return;
-    }
-
+    const res = await fetch(`/api/standings?discipline=${encodeURIComponent(disciplineSelect.value)}`);
     const data = await res.json();
-    const mode = getCurrentMode();
-    const list = data[mode.standingsKey] || [];
-    const events = mode.events;
 
-    const rows = list.map(r => {
-      const scores = r.scores || {};
-      const eventCells = events.map(event => `<td>${scores[event.id] ?? ""}</td>`).join("");
-      const total = events.reduce((sum, event) => sum + (Number(scores[event.id]) || 0), 0);
+    const rows = data
+      .sort((a,b)=> (b.total||0)-(a.total||0))
+      .map(r => `<tr>
+        <td>${escapeHtml(r.name)}</td>
+        ${currentEvents.map(e => `<td>${r.scores?.[e.id] ?? ''}</td>`).join('')}
+        <td>${r.total ?? 0}</td>
+      </tr>`).join('');
 
-      return `<tr>
-        <td>${escapeHtml(r.name ?? "")}</td>
-        ${eventCells}
-        <td>${total}</td>
-        <td><button type="button" class="delete-btn" data-name="${escapeHtmlAttr(r.name ?? "")}">🗑️</button></td>
-      </tr>`;
-    }).join("");
-
-    el("standings").innerHTML = rows;
-
-    document.querySelectorAll(".delete-btn").forEach(button => {
-      button.addEventListener("click", () => deleteCompetitor(button.dataset.name));
-    });
+    el('standings').innerHTML = rows;
   } catch (e) {
-    setError("Could not load standings");
+    setError('Could not load standings');
   }
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"]/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "\"": "&quot;"
-  }[c]));
+function escapeHtml(s){
+  return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 }
 
-function escapeHtmlAttr(s) {
-  return String(s).replace(/["&<>]/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "\"": "&quot;"
-  }[c]));
+async function init() {
+  await loadEvents();
+  await loadCompetitors();
+  await renderStandings();
 }
 
-refreshModeView();
+init();

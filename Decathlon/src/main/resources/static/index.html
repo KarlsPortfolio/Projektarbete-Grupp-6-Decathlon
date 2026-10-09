@@ -5,24 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Decathlon Web MVP</title>
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
         .row { display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem; flex-wrap: wrap; }
         .card { border: 1px solid #ddd; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
-        .standings-wrap { overflow: auto; max-height: 420px; border: 1px solid #eee; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th, td { border-bottom: 1px solid #eee; padding: .5rem; text-align: left; white-space: nowrap; }
-        thead th { position: sticky; top: 0; background: #fff; z-index: 1; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #eee; padding: .5rem; text-align: left; }
         #error { color: #b00020; }
-        .delete-btn { background: none; border: 1px solid #ddd; border-radius: 6px; padding: .25rem .5rem; cursor: pointer; }
+        .combo { position: relative; }
+        .menu { position: absolute; top: 100%; left: 0; min-width: 100%; max-height: 200px; overflow-y: auto; margin: 0; padding: 0; list-style: none; background: #fff; border: 1px solid #ddd; border-radius: 6px; z-index: 10; box-sizing: border-box; }
+        .menu[hidden] { display: none; }
+        .menu li { padding: .4rem .6rem; cursor: pointer; white-space: nowrap; }
+        .menu li:hover { background: #f0f0f0; }
     </style>
 </head>
 <body>
-<h1 id="pageTitle">Decathlon Web MVP</h1>
+<h1>Decathlon Web MVP</h1>
 
 <div class="card">
+    <h2>Competition</h2>
     <div class="row">
-        <label><input type="radio" name="mode" value="decathlon" checked> Decathlon</label>
-        <label><input type="radio" name="mode" value="heptathlon"> Heptathlon</label>
+        <label for="discipline">Discipline</label>
+        <select id="discipline" data-testid="disciplineSelect">
+            <option value="decathlon">Decathlon</option>
+            <option value="heptathlon">Heptathlon</option>
+        </select>
     </div>
 </div>
 
@@ -40,11 +46,14 @@
     <h2>Enter result</h2>
     <div class="row">
         <label for="name2">Name</label>
-        <input id="name2" placeholder="same as above" />
+        <div class="combo">
+            <input id="name2" data-testid="resultNameInput" placeholder="same as above" autocomplete="off" />
+            <ul id="competitorMenu" class="menu" data-testid="competitorMenu" role="listbox" hidden></ul>
+        </div>
         <label for="event">Event</label>
         <select id="event" data-testid="eventSelect"></select>
         <label for="raw">Result</label>
-        <input id="raw" data-testid="rawInput" type="number" step="0.01" />
+        <input id="raw" data-testid="rawInput" type="text" inputmode="decimal" autocomplete="off" />
         <button id="save" data-testid="saveScoreBtn">Save score</button>
     </div>
     <div id="msg" aria-live="polite"></div>
@@ -52,17 +61,13 @@
 
 <div class="card">
     <h2>Standings</h2>
-    <div class="standings-wrap">
-        <table>
-            <thead id="standingsHeader"></thead>
-            <tbody id="standings" data-testid="standingsTable"></tbody>
-        </table>
-    </div>
-    <div class="row" style="margin-top: .75rem;">
-        <button id="export" data-testid="exportCsvBtn">Export CSV</button>
-        <input id="importFile" type="file" accept=".csv,text/csv" />
-        <button id="import">Import CSV</button>
-    </div>
+    <table>
+        <thead>
+        <tr id="standingsHeader"></tr>
+        </thead>
+        <tbody id="standings" data-testid="standingsTable"></tbody>
+    </table>
+    <button id="export" data-testid="exportCsvBtn">Export CSV</button>
 </div>
 
 <script src="app.js" type="module"></script>

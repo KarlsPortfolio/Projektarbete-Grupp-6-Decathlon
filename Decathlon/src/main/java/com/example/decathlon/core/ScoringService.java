@@ -2,72 +2,112 @@ package com.example.decathlon.core;
 
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class ScoringService {
+    public enum Type { TRACK, FIELD }
+    public enum Discipline { DECATHLON, HEPTATHLON }
 
-    private static class Formula {
-        double A;
-        double B;
-        double C;
-        boolean track;
-        double min;
-        double max;
-
-        Formula(double A, double B, double C, boolean track, double min, double max) {
-            this.A = A;
-            this.B = B;
-            this.C = C;
-            this.track = track;
-            this.min = min;
-            this.max = max;
+    public static class InvalidResultException extends RuntimeException {
+        public InvalidResultException(String message) {
+            super(message);
         }
     }
 
-    private final Map<String, Formula> formulas = new HashMap<>();
+    public record EventDef(String id, String label, Discipline discipline, Type type,
+                           double A, double B, double C,
+                           double minRaw, double maxRaw, String unit) {}
 
-    public ScoringService() {
-        formulas.put("Decathlon:100m", new Formula(25.4347, 18, 1.81, true, 5, 18));
-        formulas.put("Decathlon:longJump", new Formula(0.14354, 220, 1.4, false, 220, 1000));
-        formulas.put("Decathlon:shotPut", new Formula(51.39, 1.5, 1.05, false, 1.5, 30));
-        formulas.put("Decathlon:highJump", new Formula(0.8465, 75, 1.42, false, 75, 300));
-        formulas.put("Decathlon:400m", new Formula(1.53775, 82, 1.81, true, 20, 82));
-        formulas.put("Decathlon:110mHurdles", new Formula(5.74352, 28.5, 1.92, true, 10, 28.5));
-        formulas.put("Decathlon:discusThrow", new Formula(12.91, 4, 1.1, false, 4, 85));
-        formulas.put("Decathlon:poleVault", new Formula(0.2797, 100, 1.35, false, 100, 1000));
-        formulas.put("Decathlon:javelinThrow", new Formula(10.14, 7, 1.08, false, 7, 110));
-        formulas.put("Decathlon:1500m", new Formula(0.03768, 480, 1.85, true, 150, 480));
+    private final Map<String, EventDef> events = buildEvents();
+    private final Map<Discipline, List<String>> order = buildOrder();
 
-        formulas.put("Heptathlon:100mHurdles", new Formula(9.23076, 26.7, 1.835, true, 10, 26.7));
-        formulas.put("Heptathlon:highJump", new Formula(1.84523, 75, 1.348, false, 75, 300));
-        formulas.put("Heptathlon:shotPut", new Formula(56.0211, 1.5, 1.05, false, 1.5, 30));
-        formulas.put("Heptathlon:200m", new Formula(4.99087, 42.5, 1.81, true, 20, 42.5));
-        formulas.put("Heptathlon:longJump", new Formula(0.188807, 210, 1.41, false, 210, 1000));
-        formulas.put("Heptathlon:javelinThrow", new Formula(15.9803, 3.8, 1.04, false, 3.8, 110));
-        formulas.put("Heptathlon:800m", new Formula(0.11193, 254, 1.88, true, 70, 254));
+    private static Map<String, EventDef> buildEvents() {
+        Map<String, EventDef> m = new LinkedHashMap<>();
+
+        m.put("100m", new EventDef("100m", "100m", Discipline.DECATHLON, Type.TRACK,
+                25.4347, 18.0, 1.81, 5, 17.99, "s"));
+        m.put("longJump", new EventDef("longJump", "Long Jump", Discipline.DECATHLON, Type.FIELD,
+                0.14354, 220.0, 1.4, 220.01, 1000, "cm"));
+        m.put("shotPut", new EventDef("shotPut", "Shot Put", Discipline.DECATHLON, Type.FIELD,
+                51.39, 1.5, 1.05, 1.51,30, "m"));
+        m.put("highJump", new EventDef("highJump", "High Jump", Discipline.DECATHLON, Type.FIELD,
+                0.8465, 75.0, 1.42, 75.01, 300, "cm"));
+        m.put("400m", new EventDef("400m", "400m", Discipline.DECATHLON, Type.TRACK,
+                1.53775, 82.0, 1.81, 20, 81.99, "s"));
+        m.put("110mHurdles", new EventDef("110mHurdles", "110m Hurdles", Discipline.DECATHLON, Type.TRACK,
+                5.74352, 28.5, 1.92, 10, 28.49, "s"));
+        m.put("discusThrow", new EventDef("discusThrow", "Discus Throw", Discipline.DECATHLON, Type.FIELD,
+                12.91, 4.0, 1.1, 4.01, 85, "m"));
+        m.put("poleVault", new EventDef("poleVault", "Pole Vault", Discipline.DECATHLON, Type.FIELD,
+                0.2797, 100.0, 1.35, 100.01, 1000, "cm"));
+        m.put("javelinThrow", new EventDef("javelinThrow", "Javelin Throw", Discipline.DECATHLON, Type.FIELD,
+                10.14, 7.0, 1.08, 7.01, 110, "m"));
+        m.put("1500m", new EventDef("1500m", "1500m", Discipline.DECATHLON, Type.TRACK,
+                0.03768, 480.0, 1.85, 150, 479.99, "s"));
+
+        m.put("hep100mHurdles", new EventDef("hep100mHurdles", "100m Hurdles", Discipline.HEPTATHLON, Type.TRACK,
+                9.23076, 26.7, 1.835, 10, 26.69, "s"));
+        m.put("hepHighJump", new EventDef("hepHighJump", "High Jump", Discipline.HEPTATHLON, Type.FIELD,
+                1.84523, 75.0, 1.348, 75.01, 300, "cm"));
+        m.put("hepShotPut", new EventDef("hepShotPut", "Shot Put", Discipline.HEPTATHLON, Type.FIELD,
+                56.0211, 1.5, 1.05, 1.51, 30, "m"));
+        m.put("hep200m", new EventDef("hep200m", "200m", Discipline.HEPTATHLON, Type.TRACK,
+                4.99087, 42.5, 1.81, 20, 42.49, "s"));
+        m.put("hepLongJump", new EventDef("hepLongJump", "Long Jump", Discipline.HEPTATHLON, Type.FIELD,
+                0.188807, 210.0, 1.41, 210.01, 1000, "cm"));
+        m.put("hepJavelinThrow", new EventDef("hepJavelinThrow", "Javelin Throw", Discipline.HEPTATHLON, Type.FIELD,
+                15.9803, 3.8, 1.04, 3.81, 110, "m"));
+        m.put("hep800m", new EventDef("hep800m", "800m", Discipline.HEPTATHLON, Type.TRACK,
+                0.11193, 254.0, 1.88, 70, 253.99, "s"));
+
+        return m;
     }
 
-    public int score(String multiEventType, String event, double raw) {
-        if (multiEventType == null || multiEventType.isBlank()) {
-            throw new IllegalArgumentException("multiEventType is required");
+    private static Map<Discipline, List<String>> buildOrder() {
+        Map<Discipline, List<String>> o = new LinkedHashMap<>();
+        o.put(Discipline.DECATHLON, List.of(
+                "100m", "longJump", "shotPut", "highJump", "400m",
+                "110mHurdles", "discusThrow", "poleVault", "javelinThrow", "1500m"));
+        o.put(Discipline.HEPTATHLON, List.of(
+                "hep100mHurdles", "hepHighJump", "hepShotPut", "hep200m",
+                "hepLongJump", "hepJavelinThrow", "hep800m"));
+        return o;
+    }
+
+    public EventDef get(String id) { return events.get(id); }
+
+    public List<String> eventIds(Discipline discipline) { return order.get(discipline); }
+
+    public List<EventDef> eventDefs(Discipline discipline) {
+        return eventIds(discipline).stream().map(events::get).toList();
+    }
+
+    public int score(String eventId, double raw) {
+        EventDef e = events.get(eventId);
+        if (e == null) {
+            throw new InvalidResultException("Unknown event");
         }
-
-        Formula f = formulas.get(multiEventType + ":" + event);
-
-        if (f == null) {
-            throw new IllegalArgumentException("Unknown event");
+        if (Double.isNaN(raw) || raw < e.minRaw || raw > e.maxRaw) {
+            throw new InvalidResultException("Invalid result for " + e.label()
+                    + ": enter a value between " + format(e.minRaw) + " and " + format(e.maxRaw) + " " + e.unit());
         }
-
-//      if (raw < f.min || raw > f.max) {
-//            throw new IllegalArgumentException("Result out of range");
-//       }
-
-        if (f.track) {
-            return (int) (f.A * Math.pow((f.B - raw), f.C));
+        double points;
+        if (e.type == Type.TRACK) {
+            double x = e.B - raw;
+            if (x <= 0) return 0;
+            points = e.A * Math.pow(x, e.C);
         } else {
-            return (int) (f.A * Math.pow((raw - f.B), f.C));
+            double x = raw - e.B;
+            if (x <= 0) return 0;
+            points = e.A * Math.pow(x, e.C);
         }
+        return (int) Math.floor(points);
+    }
+
+    private static String format(double value) {
+        return new java.math.BigDecimal(Double.toString(value)).stripTrailingZeros().toPlainString();
     }
 }

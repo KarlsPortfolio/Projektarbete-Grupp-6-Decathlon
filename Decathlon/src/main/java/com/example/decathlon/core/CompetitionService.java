@@ -1,5 +1,6 @@
 package com.example.decathlon.core;
 
+import com.example.decathlon.core.ScoringService.Discipline;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -9,19 +10,27 @@ import java.util.stream.Collectors;
 @Service
 public class CompetitionService {
     private final ScoringService scoring;
+    private final Map<Discipline, List<Competitor>> competitors = new EnumMap<>(Discipline.class);
 
     public CompetitionService(ScoringService scoring) {
         this.scoring = scoring;
+        for (Discipline d : Discipline.values()) {
+            competitors.put(d, new ArrayList<>());
+        }
     }
 
     public static class Competitor {
-        public final String name;
-        public final String multiEventType;
+        private String baseName;
+        private String name;
         public final Map<String, Integer> points = new ConcurrentHashMap<>();
 
-        public Competitor(String name, String multiEventType) {
+        public Competitor(String name) {
+            this.baseName = name;
             this.name = name;
-            this.multiEventType = multiEventType;
+        }
+
+        public String getName() {
+            return name;
         }
 
         public int total() {
@@ -29,71 +38,93 @@ public class CompetitionService {
         }
     }
 
-    private final Map<String, Competitor> competitors = new LinkedHashMap<>();
-
-    private String competitorKey(String name, String multiEventType) {
-        return normalizeType(multiEventType) + "|" + name;
-    }
-
-    private String normalizeType(String multiEventType) {
-        if (multiEventType == null || multiEventType.isBlank()) {
-            throw new IllegalArgumentException("multiEventType is required");
-        }
-
-        if ("Decathlon".equalsIgnoreCase(multiEventType)) {
-            return "Decathlon";
-        }
-
-        if ("Heptathlon".equalsIgnoreCase(multiEventType)) {
-            return "Heptathlon";
-        }
-
-        throw new IllegalArgumentException("Unknown multiEventType");
-    }
-
-    public synchronized void addCompetitor(String name, String multiEventType) {
-        String normalizedType = normalizeType(multiEventType);
-        String key = competitorKey(name, normalizedType);
-
-        if (!competitors.containsKey(key)) {
-            competitors.put(key, new Competitor(name, normalizedType));
+    public static class CompetitorNotFoundException extends RuntimeException {
+        public CompetitorNotFoundException(String name) {
+            super("Competitor \"" + name + "\" does not exist");
         }
     }
 
-    public synchronized boolean deleteCompetitor(String name, String multiEventType) {
-        return competitors.remove(competitorKey(name, multiEventType)) != null;
+    public static class InvalidNameException extends RuntimeException {
+        public InvalidNameException(String message) {
+            super(message);
+        }
     }
 
-    public synchronized int score(String name, String multiEventType, String eventId, double raw) {
-        String normalizedType = normalizeType(multiEventType);
-        String key = competitorKey(name, normalizedType);
-        Competitor c = competitors.computeIfAbsent(key, k -> new Competitor(name, normalizedType));
-        int pts = scoring.score(normalizedType, eventId, raw);
+    public synchronized void addCompetitor(Discipline discipline, String name) {
+        String base = name == null ? "" : name.trim();
+        if (base.isEmpty()) {
+            throw new InvalidNameException("Name must not be empty");
+        }
+        List<Competitor> list = competitors.get(discipline);
+        List<Competitor> sameName = new ArrayList<>();
+        for (Competitor c : list) {
+            if (c.baseName.equals(base) || c.name.equals(base)) {
+                sameName.add(c);
+            }
+        }
+        if (sameName.isEmpty()) {
+            list.add(new Competitor(base));
+            return;
+        }
+        for (Competitor c : sameName) {
+            if (c.name.equals(base)) {
+                c.baseName = base;
+                c.name = numbered(list, base, 1);
+            }
+        }
+        Competitor added = new Competitor(base);
+        added.name = numbered(list, base, sameName.size() + 1);
+        list.add(added);
+    }
+
+    private String numbered(List<Competitor> list, String base, int start) {
+        int n = start;
+        while (true) {
+            String candidate = base + "(" + n + ")";
+            boolean taken = false;
+            for (Competitor c : list) {
+                if (c.name.equals(candidate)) {
+                    taken = true;
+                    break;
+                }
+            }
+            if (!taken) {
+                return candidate;
+            }
+            n++;
+        }
+    }
+
+    private Competitor find(Discipline discipline, String name) {
+        for (Competitor c : competitors.get(discipline)) {
+            if (c.name.equals(name)) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    public synchronized int score(String name, String eventId, double raw) {
+        ScoringService.EventDef def = scoring.get(eventId);
+        if (def == null) {
+            throw new ScoringService.InvalidResultException("Unknown event");
+        }
+        String trimmed = name == null ? "" : name.trim();
+        Competitor c = find(def.discipline(), trimmed);
+        if (c == null) {
+            throw new CompetitorNotFoundException(trimmed);
+        }
+        int pts = scoring.score(eventId, raw);
         c.points.put(eventId, pts);
         return pts;
     }
 
-    public synchronized void setPoints(String name, String multiEventType, String eventId, int points) {
-        String normalizedType = normalizeType(multiEventType);
-        String key = competitorKey(name, normalizedType);
-        Competitor c = competitors.computeIfAbsent(key, k -> new Competitor(name, normalizedType));
-        c.points.put(eventId, points);
+    public synchronized List<String> competitorNames(Discipline discipline) {
+        return competitors.get(discipline).stream().map(Competitor::getName).collect(Collectors.toList());
     }
 
-    public synchronized void clear() {
-        competitors.clear();
-    }
-
-    public synchronized Map<String, Object> standings() {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("decathlon", buildStandingsFor("Decathlon"));
-        result.put("heptathlon", buildStandingsFor("Heptathlon"));
-        return result;
-    }
-
-    private List<Map<String, Object>> buildStandingsFor(String multiEventType) {
-        return competitors.values().stream()
-                .filter(c -> c.multiEventType.equals(multiEventType))
+    public synchronized List<Map<String, Object>> standings(Discipline discipline) {
+        return competitors.get(discipline).stream()
                 .map(c -> {
                     Map<String, Object> m = new LinkedHashMap<>();
                     m.put("name", c.name);
@@ -105,119 +136,29 @@ public class CompetitionService {
                 .collect(Collectors.toList());
     }
 
-    public synchronized String exportCsv() {
-        StringBuilder sb = new StringBuilder();
-        exportGroup(sb, "Decathlon");
-        exportGroup(sb, "Heptathlon");
-        return sb.toString();
-    }
-
-    private void exportGroup(StringBuilder sb, String multiEventType) {
-        List<Competitor> group = competitors.values().stream()
-                .filter(c -> c.multiEventType.equals(multiEventType))
-                .collect(Collectors.toList());
-
-        if (group.isEmpty()) {
-            return;
-        }
-
+    public synchronized String exportCsv(Discipline discipline) {
+        List<Competitor> list = competitors.get(discipline);
         Set<String> eventIds = new LinkedHashSet<>();
-        group.forEach(c -> eventIds.addAll(c.points.keySet()));
-
+        list.forEach(c -> eventIds.addAll(c.points.keySet()));
         List<String> header = new ArrayList<>();
-        header.add("MultiEventType");
         header.add("Name");
         header.addAll(eventIds);
         header.add("Total");
 
+        StringBuilder sb = new StringBuilder();
         sb.append(String.join(",", header)).append("\n");
-
-        for (Competitor c : group) {
+        for (Competitor c : list) {
             List<String> row = new ArrayList<>();
-            row.add(c.multiEventType);
             row.add(c.name);
             int sum = 0;
             for (String ev : eventIds) {
                 Integer p = c.points.get(ev);
                 row.add(p == null ? "" : String.valueOf(p));
-                if (p != null) {
-                    sum += p;
-                }
+                if (p != null) sum += p;
             }
             row.add(String.valueOf(sum));
             sb.append(String.join(",", row)).append("\n");
         }
-    }
-
-    public synchronized void importCsv(String csv) {
-        if (csv == null || csv.isBlank()) {
-            throw new IllegalArgumentException("File is empty");
-        }
-
-        String[] lines = csv.replace("\r", "").split("\n");
-        if (lines.length == 0) {
-            throw new IllegalArgumentException("File is empty");
-        }
-
-        competitors.clear();
-
-        String currentType = null;
-        List<String> events = new ArrayList<>();
-
-        for (String line : lines) {
-            if (line.isBlank()) {
-                continue;
-            }
-
-            String[] cells = line.split(",", -1);
-
-            if (cells.length >= 3 && "MultiEventType".equals(cells[0]) && "Name".equals(cells[1])) {
-                currentType = null;
-                events.clear();
-                for (int i = 2; i < cells.length - 1; i++) {
-                    events.add(cells[i]);
-                }
-                continue;
-            }
-
-            if (cells.length < 2) {
-                throw new IllegalArgumentException("Invalid CSV format");
-            }
-
-            String multiEventType = cells[0].trim();
-            String name = cells[1].trim();
-
-            if (multiEventType.isEmpty() || name.isEmpty()) {
-                continue;
-            }
-
-            currentType = normalizeType(multiEventType);
-            String key = competitorKey(name, currentType);
-            Competitor competitor = new Competitor(name, currentType);
-
-            for (int i = 0; i < events.size(); i++) {
-                int cellIndex = i + 2;
-                if (cellIndex >= cells.length) {
-                    continue;
-                }
-
-                String value = cells[cellIndex].trim();
-                if (value.isEmpty()) {
-                    continue;
-                }
-
-                try {
-                    competitor.points.put(events.get(i), Integer.parseInt(value));
-                } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("Invalid CSV format");
-                }
-            }
-
-            competitors.put(key, competitor);
-        }
-    }
-
-    public int count(String multiEventType) {
-        return buildStandingsFor(normalizeType(multiEventType)).size();
+        return sb.toString();
     }
 }
